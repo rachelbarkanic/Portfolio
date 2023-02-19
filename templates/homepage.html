@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<form action="{{ url_for('create_user') }}" method="POST">
+    {{ create_user_form.csrf_token() }}
+    {{ create_user_form.username.label }}
+    <br>
+    {{ create_user_form.username }}
+    <br>
+    {{ create_user_form.first_name.label}}
+    <br>
+    {{ create_user_form.first_name }}
+    <br>
+    {{ create_user_form.last_name.label }}
+    <br>
+    {{ create_user_form.last_name }}
+    <br>
+    {{ create_user_form.email.label }}
+    <br>
+    {{ create_user_form.email }}
+    <br>
+    {{ create_user_form.password.label }}
+    <br>
+    {{ create_user_form.password }}
+    <br>
+    {{ create_user_form.submit }}
+</form>
+
+{% endblock %}

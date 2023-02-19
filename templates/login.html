@@ -1,0 +1,12 @@
+{% extends 'base.html ' %}
+
+Log In or Create User
+
+<form action="{{ url_for('add_team') }}" method="POST">
+    {{ team_form.csrf_token() }}
+    {{ team_form.team_name.label }}
+    <br>
+    {{ team_form.team_name }}
+    <br>
+    {{ team_form.submit }}
+</form>
