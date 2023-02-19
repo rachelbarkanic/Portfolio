@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, flash, session, redirect, url_for
+from flask import Flask, render_template, request, flash, session, redirect, url_for, abort
 from models import connect_to_db, db, User
-from forms import CreateUserForm
-from flask_login import LoginManager
+from forms import CreateUserForm, LoginForm
+from flask_login import LoginManager, login_user, login_required, logout_user
 
 from jinja2 import StrictUndefined
 
@@ -24,26 +24,59 @@ def homepage():
 
     return render_template('homepage.html', create_user_form = create_user_form)
 
+@app.route('/welcome')
+@login_required
+def welcome_user():
+    return render_template('welcome_user.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('See ya later!')
+    return redirect(url_for('homepage'))
+
+@app.route('/login', methods = ['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email = form.email.data).first()
+
+        if user.check_password(form.password.data) and user is not None:
+            login_user(user)
+            flash('You are logged in!')
+
+            next = request.args.get('next')
+
+            if next == None or not next[0] == '/':
+                next = url_for('welcome_user')
+            
+            return redirect(next)
+    
+    return render_template('login.html', form = form)
+
+
+
 
 @app.route('/users', methods=['GET', 'POST'])
 def create_user():
     '''Create a new user'''
-    username = request.form.get('username')
-    first_name = request.form.get('first_name')
-    last_name = request.form.get('last_name')
-    email = request.form.get('email')
-    password = request.form.get('password')
+    form = CreateUserForm()
 
-    user = User.get_user_by_email(email)
-
-    if user:
-        flash('Sorry, that email already exists. Try another.')
-    else:
-        user = User.create_user(username, first_name, last_name, email, password)
+    if form.validate_on_submit():
+        user = User(username = form.username.data,
+            first_name = form.first_name.data,
+            last_name = form.last_name.data,
+            email = form.email.data,
+            password = form.password.data)
+        
         db.session.add(user)
         db.session.commit()
-        flash('Account created successfully! You can now log in!')
-    return redirect('/')
+        flash('User created successfully')
+
+        return redirect(url_for('login'))
+        
+    return render_template('register.html', form = form)
 
 
 @app.route('/all_users')
